@@ -1,104 +1,130 @@
 <?php
-var_dump($_GET);
-$conexion = mysqli_connect("localhost", "root", "", "proyecto_ventas");
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
-}
-
+require_once '../config/conexion.php';
 if (!isset($_GET['idTransportador'])) {
-    die("ID de transportador no especificado.");
+    die("❌ ID de transportador no especificado.");
 }
 
 $id = intval($_GET['idTransportador']);
-
 $sql = "SELECT * FROM transportador WHERE idTransportador = $id";
 $resultado = mysqli_query($conexion, $sql);
 
 if (!$resultado || mysqli_num_rows($resultado) === 0) {
-    die("Transportador no encontrado.");
+    die("❌ Transportador no encontrado.");
 }
-
 $fila = mysqli_fetch_assoc($resultado);
+
+$page_title = 'Editar Conductor - Admin';
+require_once '../includes/admin_header.php';
+
+// Validar credenciales
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'empleado') {
+    echo "<script>window.location.href = '../index.php';</script>";
+    exit;
+}
 ?>
 
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Editar Transportador</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="../estilos/estiloindex.css">
-  <link rel="stylesheet" href="../agregar productos/agregarproductos.css">
-  <link rel="icon" type="image/jpg" href="../img/favicon-32x32.png"/>
-  
-</head>
-<body>
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            
+            <div class="d-flex align-items-center mb-4">
+                <a href="gestionar_transportadores.php" class="btn btn-outline-secondary rounded-circle me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold text-dark m-0"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Editar Transportador</h2>
+                    <p class="text-muted mt-1 mb-0">Actualiza los datos de contacto o estado vehicular de "<?= htmlspecialchars($fila['nombre']) ?>".</p>
+                </div>
+            </div>
 
-<header>
-      <div class="logo">
-        <img src="../img/Logo.png" width="500px" height="150px">
-        
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <form action="actualizar_transportador.php" method="POST">
+                        
+                        <input type="hidden" name="idTransportador" value="<?= $fila['idTransportador'] ?>">
+
+                        <div class="row g-3">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Nombre Completo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" name="nombre" value="<?= htmlspecialchars($fila['nombre']) ?>" required maxlength="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Teléfono</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-telephone"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" name="telefono" value="<?= htmlspecialchars($fila['telefono']) ?>" maxlength="50">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Correo Electrónico</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control bg-light border-start-0 ps-0" name="correo" value="<?= htmlspecialchars($fila['correo']) ?>" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Vehículo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-truck"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" name="vehiculo" value="<?= htmlspecialchars($fila['vehiculo']) ?>">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Número de Placa</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-card-text"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" name="placa" value="<?= htmlspecialchars($fila['placa']) ?>" maxlength="20">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4 bg-light p-3 rounded border">
+                            <label class="form-label fw-bold text-secondary small text-dark d-block">Calificación Actual / Ajuste</label>
+                            
+                            <div class="btn-group gap-2 w-100 mt-2" role="group">
+                                <?php 
+                                $cali = intval($fila['calificacion']);
+                                for($i=1; $i<=5; $i++): 
+                                    $checked = ($i == $cali) ? 'checked' : '';
+                                ?>
+                                    <input type="radio" class="btn-check" name="calificacion" id="estrella<?= $i ?>" value="<?= $i ?>" autocomplete="off" <?= $checked ?>>
+                                    <label class="btn btn-outline-warning rounded border fs-5 py-2 w-100" for="estrella<?= $i ?>" title="<?= $i ?> estrellas">
+                                        <?= $i ?> <i class="bi bi-star-fill"></i>
+                                    </label>
+                                <?php endfor; ?>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="bi bi-arrow-repeat me-2"></i> Actualizar Transportador
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
+</main>
 
-        <div class="titulo">
-            <h1 class="textotitulo">Administrador</h1>
-        </div>
-        
-        <div class="boton">
-            <a href="../ingresar/ingresar.php" class="ingreso">SALIR</a>
-        </div>
-    </header>
+<style>
+.btn-check:checked + .btn-outline-warning {
+    background-color: #ffc107;
+    color: white !important;
+}
+.btn-outline-warning {
+    color: #ffc107;
+}
+</style>
 
-</header>
-<nav>
-  <ul>
-    <ul>
-        <li><a href="../home/home.php">Inicio</a></li>
-        <li><a href="gestioproductos.php">Gestionar Productos</a></li>
-        <li><a href="Gestionar_transportadores.php">Gestionar transportadores</a></li>
-        <li><a href="#">Gestionar Pedidos</a></li>
-        <li><a href="#">Reporte</a></li>
-        <li><a href="#">Configuración</a></li>
-    </ul>
-</nav>
-
- 
-  <h1 class="tituloformulario">Editar Transportador</h1>
-
- 
-  <div class="frm">
-
-    <form action="actualizar_transportador.php" method="post" class="formularioProducto">
-
-      <input type="hidden" name="idTransportador" value="<?= $fila['idTransportador'] ?>">
-
-      <label>Nombre</label>
-      <input type="text" name="nombre" value="<?= htmlspecialchars($fila['nombre']) ?>" required>
-
-      <label>Teléfono</label>
-      <input type="text" name="telefono" value="<?= htmlspecialchars($fila['telefono']) ?>">
-
-      <label>Correo</label>
-      <input type="email" name="correo" value="<?= htmlspecialchars($fila['correo']) ?>">
-
-      <label>Vehículo</label>
-      <input type="text" name="vehiculo" value="<?= htmlspecialchars($fila['vehiculo']) ?>">
-
-      <label>Placa</label>
-      <input type="text" name="placa" value="<?= htmlspecialchars($fila['placa']) ?>">
-
-      <label>Calificación</label>
-      <input type="text" name="calificacion" value="<?= htmlspecialchars($fila['calificacion']) ?>">
-
-      <!-- botón con clase -->
-      <button type="submit" class="botonguardar">Actualizar</button>
-    </form>
-  </div>
-   <footer>
-    <p>&copy; 2025 Supermercado Piolín. Todos los derechos reservados.</p>
-</footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-
-</body>
-</html>
+<?php require_once '../includes/admin_footer.php'; ?>

@@ -1,131 +1,125 @@
-<?php
-
-$conexion = mysqli_connect("localhost", "root", "", "proyecto_ventas");
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
-}
+﻿<?php
+require_once '../config/conexion.php';
 
 // Si viene de insertar
 $mensaje = "";
 if (isset($_GET['verificar']) && $_GET['verificar'] == "insertar") {
-    $mensaje = "✅ conductor registrado con éxito.";
+    $mensaje = "✅ Conductor registrado con éxito.";
 }
 
-// Traer todos los productos
-$sql = "SELECT * FROM transportador ORDER BY idTransportador DESC"; // Ordenado por último insertado
-$resultado = mysqli_query($conexion, $sql);
-
-$sql = "SELECT * FROM transportador";
+// Traer todos los transportadores
+$sql = "SELECT * FROM transportador ORDER BY idTransportador DESC";
 $resultado = mysqli_query($conexion, $sql);
 
 if (!$resultado) {
     die("Error en la consulta: " . mysqli_error($conexion));
 }
+
+$page_title = 'Gestión de Transportadores - Admin';
+require_once '../includes/admin_header.php';
+
+// Validar que realmente sea un empleado/administrador
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'empleado') {
+    echo "<script>window.location.href = '../index.php';</script>";
+    exit;
+}
 ?>
 
-
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
+<main class="container py-5">
     
-    <link rel="stylesheet" href="estilohm.css">
-    <link rel="stylesheet" href="../estilos/estiloindex.css">
-    <link rel="stylesheet" href="../productos/estilosproductos.css">
-    <link rel="icon" type="image/jpg" href="../img/favicon-32x32.png"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestionar transportadores</title>
-</head>
-<body>
-
-
-
-
-    <header>
-      <div class="logo">
-        <img src="../img/Logo.png" width="500px" height="150px">
-        
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold text-dark m-0"><i class="bi bi-truck me-2 text-success"></i>Gestión de Transportadores</h2>
+            <p class="text-muted mt-1 mb-0">Administra el personal de logística, visualiza sus vehículos y calificaciones.</p>
+        </div>
+        <a href="formulario_transportador.php" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center">
+            <i class="bi bi-plus-circle-fill me-2"></i> Nuevo Transportador
+        </a>
     </div>
 
-        <div class="titulo">
-            <h1 class="textotitulo">Administrador</h1>
-        </div>
-        
-        <div class="boton">
-            <a href="cerrar_sesión.php" class="ingreso">SALIR</a>
-        </div>
-    </header>
-
-</header>
-<nav>
-  <ul>
-    <ul>
-        <li><a href="../home/home.php">Inicio</a></li>
-        <li><a href="gestioproductos.php">Gestionar Productos</a></li>
-        <li><a href="Gestionar_transportadores.php">Gestionar transportadores</a></li>
-        <li><a href="#">Gestionar Pedidos</a></li>
-        <li><a href="#">Reporte</a></li>
-        <li><a href="#">Configuración</a></li>
-    </ul>
-</nav>
-
-
-
-
-
-<section>
     <?php if ($mensaje != ""): ?>
-    <div class="alert alert-success">
-        <?php echo $mensaje; ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><strong>¡Éxito!</strong> <?php echo htmlspecialchars($mensaje); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['mensaje'])): ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($_GET['mensaje']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mt-2">
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col" class="py-3 px-4"># ID</th>
+                        <th scope="col" class="py-3">Nombre</th>
+                        <th scope="col" class="py-3">Contacto</th>
+                        <th scope="col" class="py-3">Vehículo</th>
+                        <th scope="col" class="py-3">Calificación</th>
+                        <th scope="col" class="py-3 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white">
+                    <?php if (mysqli_num_rows($resultado) > 0): ?>
+                        <?php while($fila = mysqli_fetch_assoc($resultado)): ?>
+                            <tr>
+                                <td class="px-4 fw-bold text-muted"><?= htmlspecialchars($fila['idTransportador']) ?></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-person text-secondary"></i>
+                                        </div>
+                                        <span class="fw-bold text-dark"><?= htmlspecialchars($fila['nombre']) ?></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small">
+                                        <div><i class="bi bi-telephone-fill text-muted me-1"></i><?= htmlspecialchars($fila['telefono']) ?></div>
+                                        <div><i class="bi bi-envelope-fill text-muted me-1"></i><a href="mailto:<?= htmlspecialchars($fila['correo']) ?>" class="text-decoration-none text-secondary"><?= htmlspecialchars($fila['correo']) ?></a></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary rounded-pill px-3 py-2 fw-normal">
+                                        <i class="bi bi-car-front-fill me-1"></i><?= htmlspecialchars($fila['vehiculo']) ?> - <?= htmlspecialchars($fila['placa']) ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="text-warning">
+                                        <i class="bi bi-star-fill"></i> <span class="text-dark fw-bold ms-1"><?= htmlspecialchars($fila['calificacion']) ?></span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group shadow-sm" role="group">
+                                        <a href="editar_transportador.php?idTransportador=<?= $fila['idTransportador'] ?>" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a href="eliminar_transportador.php?idTransportador=<?= $fila['idTransportador'] ?>" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="return confirm('¿Seguro que deseas eliminar definitivamente a este transportador?');">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="bi bi-truck text-muted" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3 fw-bold text-dark">No hay transportadores registrados</h5>
+                                <p class="text-muted mb-0">Comienza añadiendo a tu equipo logístico en el botón superior.</p>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-<?php endif; ?>
 
-<?php if (isset($_GET['mensaje'])): ?>
-  <div class="alert alert-success" role="alert">
-    <i class="bi bi-check-circle"></i> <?= $_GET['mensaje']; ?>
-  </div>
-<?php endif; ?>
+</main>
 
-<div class="transportadores">
+<?php require_once '../includes/admin_footer.php'; ?>
 
-<?php while($fila = mysqli_fetch_assoc($resultado)): ?>
-  <div class="item">
-    <div class="info-producto">
-      <h2><?= htmlspecialchars($fila['nombre']) ?></h2>
-      <p>📞 <?= htmlspecialchars($fila['telefono']) ?></p>
-      <p>✉️ <?= htmlspecialchars($fila['correo']) ?></p>
-      <p>🚗 <?= htmlspecialchars($fila['vehiculo']) ?> - <?= htmlspecialchars($fila['placa']) ?></p>
-      <p>⭐ Calificación: <?= htmlspecialchars($fila['calificacion']) ?></p>
-
-      <a class="btn-editar" 
-     href="editar_transportador.php?idTransportador=<?= $fila['idTransportador'] ?>">
-     Editar Transportador
-     </a>
-    
-
-
-      <a class="btn-eliminar" href="eliminar_transportador.php?idTransportador=<?= $fila['idTransportador'] ?>"
-         onclick="return confirm('¿Seguro que deseas eliminar este transportador?');">Eliminar</a>
-    </div>
-  </div>
-<?php endwhile; ?>
-    
-</section>
-
- <button class="btn-agregar">
-        
-        <a href="../gestion_productos/formulario_transportador.php"><i class="bi bi-cloud-upload"></i>Agregar Transportador</a>
-        </button>
-
-
-
-
-<footer>
-    <p>&copy; 2025 Supermercado Piolín. Todos los derechos reservados.</p>
-</footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-</body>
-</html>

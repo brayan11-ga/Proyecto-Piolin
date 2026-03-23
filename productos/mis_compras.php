@@ -1,65 +1,88 @@
 <?php
 session_start();
-include 'conexion.php';
+require_once '../config/conexion.php';
+
+if (!isset($_SESSION['id'])) {
+    header("Location: ../ingresar/ingresar.php");
+    exit;
+}
 
 $id_cliente = $_SESSION['id']; 
 
-$sql = "CALL ConsultarComprasDetalle(?)";
+// Reemplazo del Stored Procedure por un equivalente JOIN 100% compatible
+$sql = "SELECT 
+            v.numeroFactura, 
+            v.fechaVenta, 
+            p.nombre AS producto, 
+            pv.cantidad, 
+            p.precio AS precio_unitario, 
+            (pv.cantidad * p.precio) AS subtotal
+        FROM venta v
+        INNER JOIN producto_venta pv ON v.numeroFactura = pv.FK_NumeroFactura
+        INNER JOIN producto p ON pv.FK_CodigoBarras = p.codigoBarras
+        WHERE v.FK_IdentificacionCliente = ?
+        ORDER BY v.numeroFactura DESC";
+
 $stmt = $conexion->prepare($sql);
 $stmt->bind_param('i', $id_cliente);
 $stmt->execute();
 $result = $stmt->get_result();
+$page_title = 'Mis Compras - Piolín';
+require_once '../includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Mis Compras</title>
-  <link rel="shortcut icon" href="../img/img/favicon-32x32.png" type="image/x-icon">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-
-<div class="container mt-5">
-  <div class="card shadow-lg border-0 rounded-4">
-    <div class="card-header bg-dark text-white text-center rounded-top-4">
-      <h3><i class="bi bi-cart4"></i> Mis Compras</h3>
+<main class="container py-5">
+  <div class="card shadow border-0 rounded-4 overflow-hidden mb-5">
+    <div class="card-header bg-dark text-white text-center py-4">
+      <h3 class="m-0 fw-bold" style="font-family: 'Montserrat', sans-serif;"><i class="bi bi-bag-check-fill me-2"></i> Mis Compras</h3>
+      <p class="mb-0 text-white-50 mt-1">Historial de tus pedidos recientes en Piolín.</p>
     </div>
-    <div class="card-body">
-      <table class="table table-striped table-hover text-center align-middle">
-        <thead class="table-dark">
-          <tr>
-            <th>N° Factura</th>
-            <th>Fecha</th>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Precio</th>
-            <th>Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php while($fila = $result->fetch_assoc()): ?>
-          <tr>
-            <td><?= $fila['numeroFactura'] ?></td>
-            <td><?= $fila['fechaVenta'] ?></td>
-            <td><?= $fila['producto'] ?></td>
-            <td><?= $fila['cantidad'] ?></td>
-            <td>$<?= number_format($fila['precio_unitario'], 2) ?></td>
-            <td>$<?= number_format($fila['subtotal'], 2) ?></td>
-          </tr>
-          <?php endwhile; ?>
-        </tbody>
-      </table>
-      <div class="text-center mt-4">
-        <a href="reporte.php" class="btn btn-danger btn-lg rounded-pill shadow">
-          <i class="bi bi-file-earmark-pdf"></i> Generar PDF
-        </a>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover text-center align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="py-3 text-secondary">N° Orden</th>
+              <th class="py-3 text-secondary">Fecha</th>
+              <th class="py-3 text-secondary text-start">Producto</th>
+              <th class="py-3 text-secondary">Cantidad</th>
+              <th class="py-3 text-secondary">Precio Unit.</th>
+              <th class="py-3 text-secondary">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if ($result && $result->num_rows > 0): ?>
+              <?php while($fila = $result->fetch_assoc()): ?>
+              <tr>
+                <td class="fw-bold">#<?= str_pad($fila['numeroFactura'], 6, "0", STR_PAD_LEFT) ?></td>
+                <td class="text-muted"><?= htmlspecialchars($fila['fechaVenta']) ?></td>
+                <td class="text-start fw-semibold"><?= htmlspecialchars($fila['producto']) ?></td>
+                <td><span class="badge bg-secondary rounded-pill px-3"><?= $fila['cantidad'] ?></span></td>
+                <td>$<?= number_format($fila['precio_unitario'], 0, ',', '.') ?></td>
+                <td class="fw-bold text-success">$<?= number_format($fila['subtotal'], 0, ',', '.') ?></td>
+              </tr>
+              <?php endwhile; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="6" class="py-5 text-muted">
+                  <i class="bi bi-emoji-frown fs-1 d-block mb-3 text-black-50"></i>
+                  No tienes compras registradas todavía. ¡Anímate a explorar el catálogo!
+                </td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-</div>
+  
+  <?php if ($result && $result->num_rows > 0): ?>
+    <div class="text-center mb-5">
+      <a href="reporte.php" class="btn btn-danger btn-lg rounded-pill shadow-sm px-5 fw-bold">
+        <i class="bi bi-file-earmark-pdf-fill me-2"></i> Descargar Historial en PDF
+      </a>
+    </div>
+  <?php endif; ?>
+</main>
 
-</body>
-</html>
+<?php require_once '../includes/footer.php'; ?>

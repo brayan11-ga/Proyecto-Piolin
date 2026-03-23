@@ -1,94 +1,111 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Registrar Conductor</title>
-  <link rel="stylesheet" href="../estilos/estiloindex.css">
-  <link rel="stylesheet" href="../agregar productos/agregarproductos.css"> <!-- aquí pones tu CSS -->
-</head>
-<body>
+<?php
+$page_title = 'Registrar Conductor - Admin';
+require_once '../includes/admin_header.php';
 
-<header>
-      <div class="logo">
-        <img src="../img/Logo.png" width="500px" height="150px">
-        
+// Validar credenciales
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'empleado') {
+    echo "<script>window.location.href = '../index.php';</script>";
+    exit;
+}
+?>
+
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            
+            <div class="d-flex align-items-center mb-4">
+                <a href="gestionar_transportadores.php" class="btn btn-outline-secondary rounded-circle me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold text-dark m-0"><i class="bi bi-person-plus-fill me-2 text-success"></i>Registrar Conductor</h2>
+                    <p class="text-muted mt-1 mb-0">Agrega un nuevo transportador a la logística de envíos de Piolín.</p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <form action="insertar_transportador.php" method="POST">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Nombre Completo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" name="nombre" required maxlength="100" placeholder="Ej: Juan Pérez">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Teléfono</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-telephone"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" name="telefono" maxlength="50" placeholder="Ej: 3001234567">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Correo Electrónico</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control bg-light border-start-0 ps-0" name="correo" required placeholder="correo@ejemplo.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Vehículo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-truck"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" name="vehiculo" placeholder="Moto, Camioneta, Bici...">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Número de Placa</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-card-text"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" name="placa" maxlength="20" placeholder="AAA-123">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4 text-center p-3 bg-light rounded border">
+                            <label class="form-label fw-bold text-dark mb-3 d-block">Calificación Inicial / Estrellas</label>
+                            
+                            <div class="btn-group gap-2" role="group">
+                                <?php for($i=1; $i<=5; $i++): ?>
+                                    <input type="radio" class="btn-check" name="calificacion" id="estrella<?= $i ?>" value="<?= $i ?>" autocomplete="off" <?= $i==5 ? 'checked' : '' ?>>
+                                    <label class="btn btn-outline-warning rounded border fs-4 pt-1 pb-1" for="estrella<?= $i ?>" title="<?= $i ?> estrellas">
+                                        <?= $i ?> <i class="bi bi-star-fill"></i>
+                                    </label>
+                                <?php endfor; ?>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm" name="guardar">
+                                <i class="bi bi-person-check-fill me-2"></i> Guardar Conductor
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
+</main>
 
-        <div class="titulo">
-            <h1 class="textotitulo">Administrador</h1>
-        </div>
-        
-        <div class="boton">
-            <a href="../ingresar/ingresar.php" class="ingreso">SALIR</a>
-        </div>
-    </header>
+<style>
+/* Estilos para que los botones radio parezcan estrellas seleccionadas usando Bootstrap */
+.btn-check:checked + .btn-outline-warning {
+    background-color: #ffc107;
+    color: white !important;
+}
+.btn-outline-warning {
+    color: #ffc107;
+}
+</style>
 
-</header>
-<nav>
-  <ul>
-    <ul>
-        <li><a href="../home/home.php">Inicio</a></li>
-        <li><a href="gestioproductos.php">Gestionar Productos</a></li>
-        <li><a href="Gestionar_transportadores.php">Gestionar transportadores</a></li>
-        <li><a href="#">Gestionar Pedidos</a></li>
-        <li><a href="#">Reporte</a></li>
-        <li><a href="#">Configuración</a></li>
-    </ul>
-</nav>
-
-
-  <!-- Título -->
-  <h1 class="tituloformulario">Registrar / Editar Conductor</h1>
-
-  <!-- Contenedor centrado -->
-  <div class="frm">
-    <!-- Caja del formulario -->
-    <form class="formularioProducto" action="conexión.php" method="post">
-
-      <label>Nombre</label>
-      <input type="text" name="nombre" required maxlength="100">
-
-      <label>Teléfono</label>
-      <input type="text" name="telefono" maxlength="50">
-
-      <label>Correo</label>
-      <input type="email" name="correo" required>
-
-      <label>Vehículo</label>
-      <input type="text" name="vehiculo">
-
-      <label>Placa</label>
-      <input type="text" name="placa" maxlength="20">
-
-      <label>Calificación</label>
-  <div class="estrellas">
-  <input type="radio" id="estrella5" name="calificacion" value="5">
-  <label for="estrella5" title="5 estrellas">★</label>
-
-  <input type="radio" id="estrella4" name="calificacion" value="4">
-  <label for="estrella4" title="4 estrellas">★</label>
-
-  <input type="radio" id="estrella3" name="calificacion" value="3">
-  <label for="estrella3" title="3 estrellas">★</label>
-
-  <input type="radio" id="estrella2" name="calificacion" value="2">
-  <label for="estrella2" title="2 estrellas">★</label>
-
-  <input type="radio" id="estrella1" name="calificacion" value="1">
-  <label for="estrella1" title="1 estrella">★</label>
-</div>
-
-      <!-- Botón guardar -->
-      <button type="submit" class="botonguardar">
-        Guardar Conductor
-      </button>
-    </form>
-  </div>
-
-  <footer>
-    <p>&copy; 2025 Supermercado Piolín. Todos los derechos reservados.</p>
-</footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-
-</body>
-</html>
+<?php require_once '../includes/admin_footer.php'; ?>

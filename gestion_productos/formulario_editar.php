@@ -15,96 +15,127 @@ if (isset($_GET['codigoBarras'])) {
     die("❌ No se recibió código de barras.");
 }
 
+$page_title = 'Editar Producto - Admin';
+require_once '../includes/admin_header.php';
+
+// Validar credenciales
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'empleado') {
+    echo "<script>window.location.href = '../index.php';</script>";
+    exit;
+}
 ?>
 
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            
+            <div class="d-flex align-items-center mb-4">
+                <a href="../gestion_productos/gestioproductos.php" class="btn btn-outline-secondary rounded-circle me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold text-dark m-0"><i class="bi bi-pencil-square me-2 text-warning"></i>Editar Producto</h2>
+                    <p class="text-muted mt-1 mb-0">Modifica la información o actualiza el stock de "<?= htmlspecialchars($producto['nombre']) ?>".</p>
+                </div>
+            </div>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link rel="stylesheet" href="../estilos/estiloindex.css">
-    <link rel="stylesheet" href="../agregar productos/agregarproductos.css">
-    <link rel="icon" type="image/jpg" href="../img/favicon-32x32.png"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <title>Editar Productos</title>
-</head>
-<body>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <form action="editar.php" method="POST" enctype="multipart/form-data">
+                        
+                        <input type="hidden" name="codigobarras" value="<?= htmlspecialchars($producto['codigoBarras']) ?>">
 
- <header>
-        <div class="logo">
-            <img src="../img/Logo.png" width="500px" height="150px">
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary small">Código de Barras (Solo lectura)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-upc-scan"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0 ps-0" value="<?= htmlspecialchars($producto['codigoBarras']) ?>" readonly disabled>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label fw-bold text-secondary small">Nombre del Producto</label>
+                                <input type="text" class="form-control bg-light" id="nombre" name="nombre" value="<?= htmlspecialchars($producto['nombre']) ?>" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="categoria" class="form-label fw-bold text-secondary small">Categoría Principal</label>
+                            <select class="form-select bg-light" id="categoria" name="categoria" required>
+                                <option value="" disabled>Seleccione una categoría</option>
+                                <?php
+                                $categorias = [
+                                    "Frutas y verduras" => "🥬 Alimentos frescos",
+                                    "Carnes, pescados y proteínas" => "🥩 Carnes, pescados y proteínas",
+                                    "Lácteos y derivados" => "🥛 Lácteos y derivados",
+                                    "Panadería" => "🍞 Panadería y repostería",
+                                    "Alimentos" => "🥫 Alimentos no perecederos",
+                                    "Snacks" => "🍫 Snacks y dulces",
+                                    "Bebidas" => "🥤 Bebidas",
+                                    "Congelados" => "🧊 Congelados",
+                                    "Productos para bebés" => "🍼 Productos para bebés",
+                                    "Higiene Personal" => "🧼 Higiene personal",
+                                    "Limpieza personal" => "🧹 Limpieza del hogar",
+                                    "Mascota" => "🐶 Mascotas"
+                                ];
+                                foreach ($categorias as $val => $label) {
+                                    $selected = ($producto['categoria'] === $val) ? "selected" : "";
+                                    echo "<option value=\"$val\" $selected>$label</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="precio" class="form-label fw-bold text-secondary small">Precio de Venta (COP)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0">$</span>
+                                    <input type="number" class="form-control bg-light border-start-0 ps-0" id="precio" name="precio" min="0" step="0.01" value="<?= htmlspecialchars($producto['precio']) ?>" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="stock" class="form-label fw-bold text-secondary small">Unidades en Stock</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-boxes"></i></span>
+                                    <input type="number" class="form-control bg-light border-start-0 ps-0" id="stock" name="stock" min="0" value="<?= htmlspecialchars($producto['stock']) ?>" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="descripcion" class="form-label fw-bold text-secondary small">Descripción Detalles</label>
+                            <textarea class="form-control bg-light" id="descripcion" name="descripcion" rows="3"><?= htmlspecialchars($producto['descripcion']) ?></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-secondary small">Imagen Actual</label>
+                            <div class="d-flex align-items-center p-3 bg-light rounded border">
+                                <div class="bg-white p-2 shadow-sm rounded me-4" style="width: 100px; height: 100px; display:flex; justify-content:center; align-items:center;">
+                                    <img src="../assets/img/<?= htmlspecialchars($producto['imagen']) ?>" alt="Imagen actual" style="max-height:100%; max-width:100%; object-fit:contain;">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <label for="imagen" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Cambiar Fotografía
+                                    </label>
+                                    <input type="file" id="imagen" name="imagen" class="d-none" accept="image/*">
+                                    <div class="form-text small m-0">Si no seleccionas un archivo, la imagen actual se mantendrá sin cambios.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-warning btn-lg rounded-pill fw-bold shadow-sm" name="guardar">
+                                <i class="bi bi-check2-circle me-2"></i> Guardar Cambios
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
         </div>
+    </div>
+</main>
 
-        <div class="titulo">
-            <h1 class="textotitulo">PIOLIN</h1>
-        </div>
-        
-        <div class="boton">
-            <a href="../ingresar/ingresar.php" class="ingreso">INGRESAR</a>
-        </div>
-    </header>
-
-
-<nav>
-    <ul>
-    <li><a href="home.php">Inicio</a></li>
-    <li><a href="../gestion_productos/gestioproductos.php">Gestionar Productos</a></li>
-    <li><a href="#">Gestionar Pedidos</a></li>
-    <li><a href="#">Reporte</a></li>
-    <li><a href="#">Configuración</a></li>
-    </ul>
-</nav>
-
-    <h2 class="tituloformulario">Editar Productos</h2>
-
-<div class="frm">
-<form class="formularioProducto" action="editar.php" method="post" enctype="multipart/form-data">
-
-   <label for="nombre">Código de Barras:</label>
-  <input type="hidden" id="codigobarras" name="codigobarras"  value="<?php echo $producto['codigoBarras']; ?>">
-
-  <label for="nombre">Nombre del producto:</label>
-  <input type="text" id="nombre" name="nombre" required value="<?php echo $producto['nombre']; ?>" >
-
-  <label for="categoria">Categoría:</label>
-  <select id="categoria" name="categoria" required>
-    <option value="">Seleccione una categoría</option>
-    <option value="Frutas y verduras"  <?= $producto['categoria'] == "Frutas y verduras" ? "selected" : "" ?> >🥦 Alimentos frescos</option>
-    <option value="Carnes, pescados y proteínas"  <?= $producto['categoria'] == "Carnes, pescados y proteínas" ? "selected" : "" ?> >🥩 Carnes, pescados y proteínas</option>
-    <option value="Lácteos y derivados"  <?= $producto['categoria'] == "Lácteos y derivados" ? "selected" : "" ?> >🥛 Lácteos y derivados</option>
-    <option value="Panadería"  <?= $producto['categoria'] == "Panadería" ? "selected" : "" ?> >🥖 Panadería y repostería</option>
-   <option value="Alimentos"  <?= $producto['categoria'] == "Alimentos" ? "selected" : "" ?> >🥫 Alimentos no perecederos (despensa)</option>
-   <option value="Snacks"  <?= $producto['categoria'] == "Snacks" ? "selected" : "" ?> >🍫 Snacks y dulces</option>
-   <option value="Bebidas" <?= $producto['categoria'] == "Bebidas" ? "selected" : "" ?> >🥤 Bebidas</option>
-   <option value="Congelados" <?= $producto['categoria'] == "Congelados" ? "selected" : "" ?> >🧃 Congelados</option>
-   <option value="Productos para bebés" <?= $producto['categoria'] == "Productos para bebés" ? "selected" : "" ?> >🍼 Productos para bebés</option>
-   <option value="Higiene Personal" <?= $producto['categoria'] == "Higiene Personal" ? "selected" : "" ?> >🧴 Higiene personal</option>
-   <option value="Limpieza personal" <?= $producto['categoria'] == "Limpieza Personal" ? "selected" : "" ?> >🧹 Limpieza del hogar</option>
-   <option value="Mascota" <?= $producto['categoria'] == "Mascota" ? "selected" : "" ?>  >🐶 Mascotas</option>
-
-  
-
-  <label for="precio">Precio:</label>
-  <input type="number" id="precio" name="precio" step="0.01" min="0" required value="<?= $producto['precio'] ?>">
-
-  <label for="stock">Cantidad en stock:</label>
-  <input type="number" id="stock" name="stock" min="0" required value="<?= $producto['stock'] ?>">
-
-  <label for="descripcion">Descripción:</label>
-  <textarea id="descripcion" name="descripcion" rows="4"> <?= $producto['descripcion'] ?> </textarea>
-
-  <label for="imagen">Imagen del producto:</label>
-
-<img src="../agregar productos/img/<?= $producto['imagen'] ?>" alt="Imagen actual" width="100">
-<input type="file" id="imagen" name="imagen" class="input-oculto">
-
-<label for="imagen" class="boton-subir">Seleccionar imagen<i class="bi bi-file-earmark-image"></i></label>
-
-
-
-  <input type="submit"  value="Guardar Cambios" class="botonguardar" name="guardar"> 
-</form>
-</div>
-</body>
-</html>
+<?php require_once '../includes/admin_footer.php'; ?>

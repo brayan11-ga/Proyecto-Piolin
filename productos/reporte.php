@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // reporte.php
 require('../pdf/fpdf.php');
 session_start();
@@ -11,7 +11,7 @@ if (empty($_SESSION['id'])) {
 $id_cliente = (int) $_SESSION['id'];
 
 // Incluye tu conexión (debe setear $conexion como mysqli)
-require 'conexion.php';
+require '../config/conexion.php';
 
 // Asegurar charset
 $conexion->set_charset('utf8');
@@ -66,7 +66,7 @@ $w = [
 
 // Encabezados
 $pdf->SetFont('Arial','B',10);
-$pdf->Cell($w['factura'],8,'N° Factura',1,0,'C');
+$pdf->Cell($w['factura'],8,'NÂ° Factura',1,0,'C');
 $pdf->Cell($w['fecha'],8,'Fecha',1,0,'C');
 $pdf->Cell($w['producto'],8,'Producto',1,0,'C');
 $pdf->Cell($w['cantidad'],8,'Cant.',1,0,'C');
@@ -150,3 +150,8 @@ $conexion->close();
 $pdf->Output('I', 'reporte_detallado_compras.pdf');
 exit;
 ?>
+
+
+
+
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $host = "localhost";
 $usuario = "root";
 $contrasena = "";
@@ -32,5 +32,11 @@ if (mysqli_query($conexion, $sql)) {
 
 mysqli_close($conexion);
 
-header('Location: ../gestion_productos/Gestionar_transportadores.php?verificar=formulario');
+header('Location: ../gestion_productos/gestionar_transportadores.php?verificar=formulario');
 ?>
+
+
+
+
+
+

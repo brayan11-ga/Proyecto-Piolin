@@ -1,179 +1,116 @@
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ingreso</title>
-    <link rel="stylesheet" href="../ingresar/estiloingreso.css">
-    <link rel="stylesheet" href="../estilos/estiloindex.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <link rel="icon" type="image/jpg" href="../img/favicon-32x32.png"/>
-  </head>
+<?php
+$page_title = 'Ingresar - Supermercado Piolín';
+require_once '../includes/header.php';
 
-<body class="bg-light">
-
- <?php
-session_start();
+$mensaje = "";
+$tipo_mensaje = "";
+$redireccion = "";
 
 if (isset($_POST['ingresar'])) {
-    $correo = $_POST['correo'];
-    $contrasena = $_POST['contrasena']; 
+    require_once '../config/conexion.php';
+    $correo = mysqli_real_escape_string($conexion, $_POST['correo']);
+    $contrasena = mysqli_real_escape_string($conexion, $_POST['contrasena']); 
 
-    $conn = mysqli_connect("localhost", "root", "", "proyecto_ventas");
-
-    if (!$conn) {
-        die("Error en la conexión: " . mysqli_connect_error());
-    }
-
-
-    $sqlEmpleado = "SELECT identificacion, nombres
-                    FROM empleado 
+    // Buscar en empleados
+    $sqlEmpleado = "SELECT identificacion, nombres FROM empleado 
                     WHERE email = '$correo' AND contraseña = '$contrasena'";
-    $resultadoEmpleado = mysqli_query($conn, $sqlEmpleado);
+    $resultadoEmpleado = mysqli_query($conexion, $sqlEmpleado);
 
-    if (mysqli_num_rows($resultadoEmpleado) > 0) {
+    if ($resultadoEmpleado && mysqli_num_rows($resultadoEmpleado) > 0) {
         $row = mysqli_fetch_assoc($resultadoEmpleado);
-
-
         $_SESSION['id'] = $row['identificacion'];
         $_SESSION['nombres'] = $row['nombres'];
         $_SESSION['rol'] = "empleado";
         $_SESSION['logueado'] = true;
 
-        echo "<div class='alert alert-success' role='alert'>
-                Bienvenido administrador {$row['nombres']}
-              </div>";
+        $mensaje = "Bienvenido, Administrador {$row['nombres']}. Redirigiendo...";
+        $tipo_mensaje = "success";
+        $redireccion = "../admin/index.php";
 
-        echo "<script>
-                setTimeout(function(){
-                  window.location.href = '../home/home.php';
-                }, 2000);
-              </script>";
-        exit;
+    } else {
+        // Buscar en clientes
+        $sqlCliente = "SELECT numeroIdentificacion, nombres, apellidos FROM cliente 
+                       WHERE correo = '$correo' AND contraseña = '$contrasena'";
+        $resultadoCliente = mysqli_query($conexion, $sqlCliente);
+
+        if ($resultadoCliente && mysqli_num_rows($resultadoCliente) > 0) {
+            $row = mysqli_fetch_assoc($resultadoCliente);
+            $_SESSION['id'] = $row['numeroIdentificacion'];
+            $_SESSION['nombres'] = $row['nombres'];
+            $_SESSION['apellidos'] = $row['apellidos'];
+            $_SESSION['rol'] = "cliente";
+            $_SESSION['logueado'] = true;
+
+            $mensaje = "Bienvenido, Cliente {$row['nombres']}. Redirigiendo...";
+            $tipo_mensaje = "success";
+            $redireccion = "../productos/productos.php";
+        } else {
+            $mensaje = "Usuario o contraseña incorrectos. Verifica tus datos.";
+            $tipo_mensaje = "danger";
+        }
     }
-
-
-    $sqlCliente = "SELECT numeroIdentificacion, nombres, apellidos 
-                   FROM cliente 
-                   WHERE correo = '$correo' AND contraseña = '$contrasena'";
-    $resultadoCliente = mysqli_query($conn, $sqlCliente);
-
-    if (mysqli_num_rows($resultadoCliente) > 0) {
-        $row = mysqli_fetch_assoc($resultadoCliente);
-
-        // Guardar en sesión como cliente
-        $_SESSION['id'] = $row['numeroIdentificacion'];
-        $_SESSION['nombres'] = $row['nombres'];
-        $_SESSION['apellidos'] = $row['apellidos'];
-        $_SESSION['rol'] = "cliente";
-        $_SESSION['logueado'] = true;
-
-        echo "<div class='alert alert-success' role='alert'>
-                Bienvenido cliente {$row['nombres']}
-              </div>";
-
-        echo "<script>
-                setTimeout(function(){
-                  window.location.href = '../productos/productos.php';
-                }, 2000);
-              </script>";
-        exit;
-    }
-
-
-    echo "<div class='alert alert-danger'>
-            Verifique su usuario y contraseña
-          </div>";
 }
 ?>
 
-    <header class="main-header py-3">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-6 col-md-4 text-start">
-                    <img src="../img/Logo.png" alt="Logo Piolin" class="img-fluid header-logo">
-                </div>
-                <div class="col-md-4 d-none d-md-block text-center">
-                    <h1 class="brand-title m-0">PIOLÍN</h1>
-                </div>
-                <div class="col-6 col-md-4 text-end">
-                    <?php if (isset($_SESSION['logueado']) && $_SESSION['logueado'] === true): ?>
-                        <a href="../cerrar_sesion/cerrar_sesion.php" class="btn btn-outline-light login-btn">SALIR</a>
-                    <?php else: ?>
-                        <a href="../ingresar/ingresar.php" class="btn btn-outline-light login-btn">ENTRAR</a>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
-        <div class="container">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav text-center">
-                    <li class="nav-item"><a class="nav-link" href="../index.php">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="productos.php">Productos</a></li>
-                    <?php if (isset($_SESSION['id'])): ?>
-                        <li class="nav-item"><a class="nav-link" href="mis_compras.php">Mis compras</a></li>
-                    <?php else: ?>
-                        <li class="nav-item"><a class="nav-link" href="../formulario/formulario.php">Registro</a></li>
-                    <?php endif; ?>
-                    <li class="nav-item"><a class="nav-link" href="../acerca/acerca.php">Acerca de</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-<section>
-        <a href="../index.php" class="volver"><img src="../img/regre.png" alt="" width="50px" height="50px"></a>
-  <div class="contenedor">
-    <div class="formulario">
-      
-        <form action="ingresar.php" method="POST">
-            <h1>Iniciar Sesión</h1>
-            <div class="input-contenedor">
-                <i class="bi bi-envelope-at-fill"></i>
-                <input type="email" required name="correo">
-                <label for="#">Email</label>
-            </div>
-
-            <div class="input-contenedor">
-                <i class="bi bi-lock-fill"></i>
-                <input type="password" required name="contrasena">
-                <label for="#">Contraseña</label>
-            </div>
-
-            <div class="olvidar">
-                <label for="#">
-                    <input type="checkbox">Recordar.
-                    <a href="#">Olvide mi Contraseña</a>
-                </label>
-            </div>
-
-            <div class="ini">
-            <input type="submit" value="Iniciar Sesión" class="botoningreso" name="ingresar">
-          
-        </div>
-        </form>
-
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
         
+        <?php if ($mensaje != ""): ?>
+            <div class="alert alert-<?= $tipo_mensaje ?> alert-dismissible fade show shadow-sm text-center mb-4" role="alert">
+                <i class="bi bi-<?= $tipo_mensaje == 'success' ? 'check-circle' : 'exclamation-circle' ?>-fill me-2 fs-5 align-middle"></i>
+                <span class="align-middle"><?= $mensaje ?></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
+            <?php if ($redireccion != ""): ?>
+            <script>
+                setTimeout(function(){
+                  window.location.href = '<?= $redireccion ?>';
+                }, 1500);
+            </script>
+            <?php endif; ?>
+        <?php endif; ?>
 
-        <div class="registrar">
-            <p>No tengo cuenta. <a href="../formulario/formulario.php">Crear una</a></p>
-        </div>
+        <form action="ingresar.php" method="POST" class="auth-container border-0 rounded-4 overflow-hidden p-0">
+            <div class="bg-primary text-white text-center py-4 px-3" style="background: linear-gradient(135deg, var(--dark-nav) 0%, #111 100%) !important;">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 80px; height: 80px;">
+                    <i class="bi bi-person-circle text-dark fs-1"></i>
+                </div>
+                <h2 class="fw-bold m-0" style="font-family: 'Montserrat', sans-serif;">Iniciar Sesión</h2>
+                <p class="text-white-50 mt-1 mb-0">Accede a tu cuenta de Supermercado Piolín</p>
+            </div>
 
+            <div class="p-4 p-md-5 bg-white">
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-bold text-secondary small">Correo Electrónico</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope-fill"></i></span>
+                        <input type="email" class="form-control bg-light border-start-0 ps-0" required name="correo" placeholder="ejemplo@correo.com">
+                    </div>
+                </div>
+
+                <div class="mb-4 text-start">
+                    <div class="d-flex justify-content-between">
+                        <label class="form-label fw-bold text-secondary small">Contraseña</label>
+                        <a href="#" class="text-danger small text-decoration-none fw-semibold">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" class="form-control bg-light border-start-0 ps-0" required name="contrasena" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-3 fs-5 text-uppercase fw-bold rounded-pill shadow" name="ingresar">Entrar a mi cuenta</button>
+                
+                <div class="mt-4 text-center border-top pt-4">
+                    <p class="mb-1 text-muted">¿Eres nuevo por aquí?</p>
+                    <a href="../formulario/formulario.php" class="btn btn-outline-danger rounded-pill px-4 fw-bold">Crear una Cuenta Nueva</a>
+                </div>
+            </div>
+        </form>
     </div>
   </div>
 </section>
-<footer>
-  <p>&copy; 2025 Supermercado Piolín. Todos los derechos reservados.</p>
-</footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
-  </body>
-  
-</html>
 
+<?php require_once '../includes/footer.php'; ?>

@@ -16,21 +16,15 @@ if (isset($_GET['quitar'])) {
 $carrito = $_SESSION['carrito'] ?? [];
 
 // Conectar a la DB
-$conexion = mysqli_connect("localhost", "root", "", "proyecto_ventas");
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
-}
-
+require_once '../config/conexion.php';
 // Preparar array con datos completos del carrito y calcular total
 $cart_items = [];
 $total = 0.0;
+$cantidad_total = 0;
 
 if (!empty($carrito)) {
     foreach ($carrito as $codigo => $item) {
-        // Convertir a entero o limpiar según tu esquema
         $cod = mysqli_real_escape_string($conexion, $codigo);
-
-        // Traer nombre y precio del producto
         $sql = "SELECT codigoBarras, nombre, precio, imagen FROM producto WHERE codigoBarras = '$cod' LIMIT 1";
         $res = mysqli_query($conexion, $sql);
 
@@ -40,6 +34,7 @@ if (!empty($carrito)) {
             $precio = (float)$prod['precio'];
             $subtotal = $precio * $cantidad;
             $total += $subtotal;
+            $cantidad_total += $cantidad;
 
             $cart_items[] = [
                 'imagen'   => $prod['imagen'],
@@ -54,99 +49,133 @@ if (!empty($carrito)) {
 }
 
 mysqli_close($conexion);
+$page_title = 'Carrito de Compras - Supermercado Piolín';
+require_once '../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pagar - Piolín</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../estilos/estiloindex.css">
-    <link rel="stylesheet" href="pago_productos.css">
+
+<main class="container py-5">
     
-</head>
-<body>
-    <header>
-        <div class="logo">
-            <img src="../img/Logo.png" width="500" height="150" alt="Piolín">
-        </div>
-        <div class="titulo"><h1 class="textotitulo">PIOLIN</h1></div>
-        <div class="boton"><?php if (isset($_SESSION['logueado']) && $_SESSION['logueado'] === true): ?>
-        <!-- Está logueado -->
-        <a href="../cerrar sesión/cerrar_sesión.php" class="cerrar">Salir</a>
-    <?php else: ?>
-        <!-- No ha iniciado sesión -->
-        <a href="../ingresar/ingresar.php" class="ingreso">Entrar</a>
-    <?php endif; ?></div>
-    </header>
-
-    <nav> <ul>
-            <li><a href="../index.php">Inicio</a></li>
-            <li><a href="productos.php">Productos</a></li>
-            <li><a href="../formulario/formulario.php">Registro</a></li>
-            <li><a href="../acerca/acerca.php">Acerca de</a></li>
-        </ul> </nav>
-
-
-        <?php if (empty($cart_items)): ?>
-            <div class="carro-vacio">
-                <i class="bi bi-cart-x-fill"></i> <p class="carrito-vacio">Tu carrito está vacío. <a href="productos.php">Ver productos</a></p>
-            </div>
-            
-        <?php else: ?>
-                             
-            <main class="container">
-  <h2>Resumen del carrito</h2>
-
-  <div class="cart-cards">
-   <?php foreach ($cart_items as $it): ?>
-    <div class="card cart-item">
-      <img src="../agregar productos/img/<?= e($it['imagen']) ?>" class="card-img-top" alt="<?= e($it['nombre']) ?>">
-      <div class="card-body">
-        <h5 class="card-title"><?= e($it['nombre']) ?></h5>
-      </div>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item">Precio: <?= '$' . number_format($it['precio'], 0, ',', '.') ?></li>
-        
-         <li class="list-group-item">Cantidad: <?= (int)$it['cantidad'] ?></li>
-         
-        <li class="list-group-item">Subtotal: <?= '$' . number_format($it['subtotal'], 0, ',', '.') ?></li>
-      </ul>
-      <div class="card-body">
-        <a href="pago_productos.php?quitar=<?= e($it['codigo']) ?>" class="card-link">Eliminar</a>
-      </div>
+    <div class="mb-5 text-center">
+        <h2 class="display-6 fw-bold text-dark" style="font-family: 'Montserrat', sans-serif;">Tu Carrito de Compras</h2>
+        <p class="text-muted">Revisa tus productos antes de finalizar la compra.</p>
     </div>
-    <?php endforeach; ?>
-  </div>
-  <div class="total-box">Total a pagar: <?= '$' . number_format($total, 0, ',', '.') ?></div>
-  
-  <a href="procesar_pago.php" class="btn-pagar">Pagar <?= '$' . number_format($total, 0, ',', '.') ?></a>
-</button>
+
+    <?php if (empty($cart_items)): ?>
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-cart-x text-muted" style="font-size: 5rem;"></i>
+                <h3 class="mt-4 fw-bold text-dark">Tu carrito está vacío</h3>
+                <p class="text-muted mb-4">Parece que aún no has añadido nada a tu lista de mercado. ¡Explora nuestras ofertas!</p>
+                <a href="productos.php" class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow">
+                    <i class="bi bi-shop me-2"></i> Ir a la Tienda
+                </a>
+            </div>
+        </div>
+    <?php else: ?>
+        <div class="row g-5">
+            
+            <!-- Columna Izquierda: Lista de Productos -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="m-0 fw-bold"><i class="bi bi-bag-check-fill text-primary me-2"></i> Productos (<?= $cantidad_total ?>)</h5>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <?php foreach ($cart_items as $it): ?>
+                            <div class="list-group-item bg-transparent p-4">
+                                <div class="row align-items-center">
+                                    <div class="col-4 col-sm-3 col-md-2 text-center">
+                                        <div class="bg-light rounded p-2 ratio ratio-1x1 position-relative overflow-hidden">
+                                             <img src="../assets/img/<?= e($it['imagen']) ?>" alt="<?= e($it['nombre']) ?>" class="img-fluid position-absolute top-50 start-50 translate-middle" style="max-height: 90%; object-fit: contain;">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-8 col-sm-6 col-md-5">
+                                        <h5 class="fw-bold mb-1 text-dark"><?= e($it['nombre']) ?></h5>
+                                        <p class="text-muted small mb-0">SKU: <?= e($it['codigo']) ?></p>
+                                    </div>
+                                    
+                                    <div class="col-6 col-sm-3 col-md-2 text-center mt-3 mt-sm-0">
+                                        <div class="bg-light rounded-pill px-3 py-1 d-inline-block border">
+                                            <span class="text-muted small fw-bold">Cant:</span> <span class="fw-bold text-dark"><?= (int)$it['cantidad'] ?></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-6 col-sm-12 col-md-3 text-end mt-3 mt-md-0 d-flex flex-md-column justify-content-between align-items-end h-100">
+                                        <span class="fw-bold text-danger fs-5">$<?= number_format($it['subtotal'], 0, ',', '.') ?></span>
+                                        <a href="pago_productos.php?quitar=<?= e($it['codigo']) ?>" class="btn btn-sm btn-outline-danger rounded-pill mt-2">
+                                            <i class="bi bi-trash"></i> Quitar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Tarjeta de Resumen / Checkout -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow position-sticky rounded-4" style="top: 100px;">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="m-0 fw-bold"><i class="bi bi-receipt text-success me-2"></i> Resumen del Pedido</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Subtotal</span>
+                            <span class="fw-bold">$<?= number_format($total, 0, ',', '.') ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Envío estimado</span>
+                            <span class="text-success fw-bold">Gratis</span>
+                        </div>
+                        
+                        <hr class="my-3 border-secondary opacity-25">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span class="fs-5 fw-bold text-dark">Total</span>
+                            <span class="fs-3 fw-bold text-danger">$<?= number_format($total, 0, ',', '.') ?></span>
+                        </div>
+
+                        <!-- Formulario de compra oculto -->
+                        <form action="procesar_pago.php" method="POST">
+                            <?php foreach ($cart_items as $i => $it): ?>
+                                <input type="hidden" name="items[<?= $i ?>][codigo]" value="<?= e($it['codigo']) ?>">
+                                <input type="hidden" name="items[<?= $i ?>][cantidad]" value="<?= e($it['cantidad']) ?>">
+                                <input type="hidden" name="items[<?= $i ?>][precio]" value="<?= e($it['precio']) ?>">
+                            <?php endforeach; ?>
+                            <input type="hidden" name="total" value="<?= $total ?>">
+                            
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-secondary">Método de Pago</label>
+                                <select class="form-select bg-light" name="metodoPago" required>
+                                    <option value="Efectivo">Efectivo contra entrega</option>
+                                    <option value="Tarjeta">Tarjeta de Crédito / Débito</option>
+                                    <option value="Transferencia">Transferencia Bancaria (PSE)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-secondary">Notas / Comentarios</label>
+                                <textarea class="form-control bg-light" name="comentarios" rows="2" placeholder="Agrega instrucciones de entrega (opcional)"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 shadow">
+                                Procesar Pago <i class="bi bi-arrow-right-circle-fill ms-2"></i>
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <a href="productos.php" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left me-1"></i> Seguir comprando</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    <?php endif; ?>
 </main>
 
-    
-            <!-- Formulario de pago: incluimos los items del carrito como campos ocultos -->
-            <form action="procesar_pago.php" method="post">
-                <?php foreach ($cart_items as $i => $it): ?>
-                    <input type="hidden" name="items[<?= $i ?>][codigo]" value="<?= e($it['codigo']) ?>">
-                    <input type="hidden" name="items[<?= $i ?>][cantidad]" value="<?= e($it['cantidad']) ?>">
-                    <input type="hidden" name="items[<?= $i ?>][precio]" value="<?= e($it['precio']) ?>">
-                <?php endforeach; ?>
-
-                <input type="hidden" name="total" value="<?= $total ?>">
-
-                <!-- Aquí puedes poner tus campos de facturación que ya tenías -->
-                <div class="row">
-                   <!-- campo: Nombre, Email, Dirección, etc. (tu html original) -->
-                </div>
-
-            </form>
-        <?php endif; ?>
-    </main>
-
-    <footer><p>&copy; 2025 Supermercado Piolín. Todos los derechos reservados.</p></footer>
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-</body>
-</html>
+<?php require_once '../includes/footer.php'; ?>

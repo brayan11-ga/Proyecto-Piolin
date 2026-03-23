@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /*******************************************************************************
 * Utility to generate font definition files                                    *
 *                                                                              *
@@ -445,3 +445,8 @@ if(PHP_SAPI=='cli')
 	MakeFont($fontfile, $enc, $embed, $subset);
 }
 ?>
+
+
+
+
+

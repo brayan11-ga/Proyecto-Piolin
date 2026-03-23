@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $host = "localhost";
 $usuario = "root";
 $contrasena = "";
@@ -36,3 +36,8 @@ mysqli_close($conexion);
 
 header('Location: ../ingresar/ingresar.php?verificar=formulario');
 ?>
+
+
+
+
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 // Verificar login del cliente
@@ -8,11 +8,7 @@ if (!isset($_SESSION['cliente_id'])) {
 }
 
 // Conexión a la BD
-$conexion = mysqli_connect("localhost", "root", "", "proyecto_ventas");
-if (!$conexion) {
-    die("Error conexión: " . mysqli_connect_error());
-}
-
+require_once '../config/conexion.php';
 $cliente_id = $_SESSION['cliente_id'];
 $carrito = $_SESSION['carrito'] ?? [];
 
@@ -56,9 +52,13 @@ foreach ($carrito as $codigo => $item) {
 unset($_SESSION['carrito']);
 
 // 5. Confirmación al usuario
-echo "<h2>¡Gracias por tu compra!</h2>";
+echo "<h2>Â¡Gracias por tu compra!</h2>";
 echo "<p>Tu número de factura es <strong>$numeroFactura</strong></p>";
 echo "<a href='../index.php'>Volver al inicio</a>";
 
 mysqli_close($conexion);
 ?>
+
+
+
+

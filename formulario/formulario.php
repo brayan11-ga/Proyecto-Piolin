@@ -1,116 +1,82 @@
+<?php
+$page_title = 'Registro - Supermercado Piolín';
+require_once '../includes/header.php';
+?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/jpg" href="../img/favicon-32x32.png"/>
-    <title>Registro - Supermercado Piolín</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <link rel="stylesheet" href="../estilos/estiloindex.css">
-    <link rel="stylesheet" href="formulario.css">
-</head>
-<body class="bg-light">
-
-    <header class="main-header py-3">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-6 col-md-4 text-start">
-                    <img src="../img/Logo.png" alt="Logo Piolin" class="img-fluid header-logo">
+<section class="container py-5 my-4">
+  <div class="row justify-content-center">
+    <div class="col-md-9 col-lg-7">
+        <form action="insertar_cliente.php" method="POST" class="auth-container border-0 rounded-4 overflow-hidden p-0">
+            <div class="bg-danger text-white text-center py-4 px-3" style="background: linear-gradient(135deg, var(--primary) 0%, #b0050d 100%);">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 80px; height: 80px;">
+                    <i class="bi bi-person-plus-fill text-danger fs-1"></i>
                 </div>
-                <div class="col-md-4 d-none d-md-block text-center">
-                    <h1 class="brand-title m-0">PIOLÍN</h1>
-                </div>
-                <div class="col-6 col-md-4 text-end">
-                    <?php if (isset($_SESSION['logueado']) && $_SESSION['logueado'] === true): ?>
-                        <a href="../cerrar_sesion/cerrar_sesion.php" class="btn btn-outline-light login-btn">SALIR</a>
-                    <?php else: ?>
-                        <a href="../ingresar/ingresar.php" class="btn btn-outline-light login-btn">ENTRAR</a>
-                    <?php endif; ?>
-                </div>
+                <h2 class="fw-bold m-0" style="font-family: 'Montserrat', sans-serif;">Registro de Cliente</h2>
+                <p class="text-white-50 mt-1 mb-0">Únete a Supermercado Piolín y empieza a ahorrar</p>
             </div>
-        </div>
-    </header>
+            
+            <div class="p-4 p-md-5 bg-white">
+                <div class="row text-start g-3">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-bold text-secondary small">Nombres</label>
+                        <input type="text" class="form-control form-control-lg bg-light" required name="nombres" placeholder="Tus nombres">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-bold text-secondary small">Apellidos</label>
+                        <input type="text" class="form-control form-control-lg bg-light" required name="apellidos" placeholder="Tus apellidos">
+                    </div>
+                </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
-        <div class="container">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav text-center">
-                    <li class="nav-item"><a class="nav-link" href="../index.php">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="../productos/productos.php">Productos</a></li>
-                    <?php if (isset($_SESSION['id'])): ?>
-                        <li class="nav-item"><a class="nav-link" href="../productos/mis_compras.php">Mis compras</a></li>
-                    <?php else: ?>
-                        <li class="nav-item"><a class="nav-link active" href="../formulario/formulario.php">Registro</a></li>
-                    <?php endif; ?>
-                    <li class="nav-item"><a class="nav-link" href="../acerca/acerca.php">Acerca de</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+                <div class="mb-3 mt-2 text-start">
+                    <label class="form-label fw-bold text-secondary small">Número de Identificación</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person-badge"></i></span>
+                        <input type="number" class="form-control bg-light border-start-0 ps-0" required name="numero" placeholder="Ej: 1000000000">
+                    </div>
+                </div>
 
-    <section class="principalregistro">
-        <div class="contenedor">
-            <div class="formulario">
+                <div class="row text-start g-3 mt-1">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-bold text-secondary small">Teléfono Móvil</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-telephone-fill"></i></span>
+                            <input type="tel" class="form-control bg-light border-start-0 ps-0" required name="telefono" pattern="\d{10}" minlength="10" maxlength="10" placeholder="10 dígitos">
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-bold text-secondary small">Correo Electrónico</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope-fill"></i></span>
+                            <input type="email" class="form-control bg-light border-start-0 ps-0" required name="correo" placeholder="ejemplo@correo.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 mt-2 text-start">
+                    <label class="form-label fw-bold text-secondary small">Contraseña</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" class="form-control bg-light border-start-0 ps-0" required name="contraseña" placeholder="••••••••">
+                    </div>
+                </div>
                 
-                <div style="text-align: center; margin-bottom: 10px;">
-                    <img src="../img/login.png" alt="Logo" width="100px" class="logoregistro">
+                <div class="form-check mb-4 text-start">
+                    <input class="form-check-input" type="checkbox" value="" id="terminos" required>
+                    <label class="form-check-label text-muted small" for="terminos">
+                        Acepto los <a href="#" class="text-danger text-decoration-none">términos y condiciones</a> y la política de privacidad.
+                    </label>
                 </div>
 
-                <h1>Registro</h1>
-
-                <form action="conexion.php" method="post">
-                    
-                    <div class="input-contenedor">
-                        <input type="text" name="numero" required>
-                        <label>Número de Identificación</label>
-                    </div>
-                    
-                    <div class="input-contenedor">
-                        <input type="text" name="nombres" required>
-                        <label>Nombres</label>
-                    </div>
-                    
-                    <div class="input-contenedor">
-                        <input type="text" name="apellidos" required>
-                        <label>Apellidos</label>
-                    </div>
-                    
-                    <div class="input-contenedor">
-                        <input type="tel" name="telefono" required pattern="\d{10}" minlength="10" maxlength="10">
-                        <label>Teléfono</label>
-                    </div>
-                    
-                    <div class="input-contenedor">
-                        <input type="email" name="correo" required>
-                        <label>Correo Electrónico</label>
-                    </div>
-                    
-                    <div class="input-contenedor">
-                        <input type="password" name="contraseña" required>
-                        <label>Contraseña</label>
-                    </div>
-                    
-                    <input type="submit" value="Registrarse" class="botoningreso" name="guardar">
-                    
-                    <div class="registrar">
-                        <p>¿Ya tienes cuenta? <a href="../ingresar/ingresar.php">Inicia sesión</a></p>
-                    </div>
-
-                </form>
+                <button type="submit" class="btn btn-primary w-100 py-3 fs-5 text-uppercase fw-bold rounded-pill shadow" name="guardar">Crear Mi Cuenta</button>
+                
+                <div class="mt-4 text-center border-top pt-4">
+                    <p class="mb-1 text-muted">¿Ya tienes cuenta?</p>
+                    <a href="../ingresar/ingresar.php" class="btn btn-outline-dark rounded-pill px-4 fw-bold">Inicia Sesión Aquí</a>
+                </div>
             </div>
-        </div>
-    </section>
+        </form>
+    </div>
+  </div>
+</section>
 
-<footer>
-    <p>&copy; 2025 Supermercado Piolín. Todos los derechos reservados.</p>
-</footer>
-    
-</body>
-</html>
+<?php require_once '../includes/footer.php'; ?>

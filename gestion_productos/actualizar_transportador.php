@@ -1,9 +1,5 @@
-<?php
-$conexion = mysqli_connect("localhost", "root", "", "proyecto_ventas");
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
-}
-
+﻿<?php
+require_once '../config/conexion.php';
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $id = intval($_POST['idTransportador']);
     $nombre = $_POST['nombre'];
@@ -19,10 +15,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             WHERE idTransportador=$id";
 
     if (mysqli_query($conexion, $sql)) {
-        header("Location: Gestionar_transportadores.php?mensaje=Transportador actualizado con éxito");
+        header("Location: gestionar_transportadores.php?mensaje=Transportador actualizado con éxito");
         exit;
     } else {
         echo "Error al actualizar: " . mysqli_error($conexion);
     }
 }
 ?>
+
+
+
+
+
+
